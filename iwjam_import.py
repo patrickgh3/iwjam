@@ -19,7 +19,7 @@ def do_import(base_dir, mod_dir, analysis):
         new_elt = etree.Element(res.type)
         new_elt.text = res.elt_text
         
-        group_names = ['stages', analysis.name] + res.group_names
+        group_names = ['stages', analysis.mod_name] + res.group_names
         base_group = base_root.find(res.restype_group_name)
         if base_group is None:
             base_group = etree.SubElement(base_root, res.restype_group_name)

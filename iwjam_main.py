@@ -2,11 +2,8 @@
 
 import os
 import shutil
-import collections
-import pickle
 import signal
 import sys
-
 import iwjam_analyze
 import iwjam_import
 import iwjam_util
@@ -26,7 +23,7 @@ def main():
         #print()
         print('{:<15} {:<3} added, {:<2} modified,\
             {:<2} regrouped, {:<2} removed'.format(
-            analysis_data.name,
+            analysis_data.mod_name,
             len(analysis_data.added),
             len(analysis_data.modified),
             len(analysis_data.regrouped),
@@ -40,13 +37,13 @@ def main():
             #print(m.difftext)
     
     print('')
-    a = [(m.name, m.added) for m in analyses]
+    a = [(m.mod_name, m.added) for m in analyses]
     added_collisions = find_collisions(a)
     print('{} added collisions'.format(len(added_collisions)))
     for c in added_collisions:
         print('{}: {}'.format(c[0], ', '.join(c[1])))
     
-    m = [(m.name, m.modified) for m in analyses]
+    m = [(m.mod_name, m.modified) for m in analyses]
     modified_collisions = find_collisions(m)
     print('{} modified collisions'.format(len(modified_collisions)))
     print('Binary:')
@@ -57,7 +54,7 @@ def main():
         print('{}: {}'.format(c[0], ', '.join([a[0] for a in c[1]])))
 
     for ai, analysis in enumerate(analyses):
-        print('\n\n{} {}\n\n'.format(ai, analysis.name))
+        print('\n\n{} {}\n\n'.format(ai, analysis.mod_name))
         for res in analysis.modified:
             if res.name in ['rooms\\rGraphicsTest.room.gmx',
                             'rooms\\rTemplate.room.gmx',
@@ -96,9 +93,9 @@ def main():
     print('\nStarting import\n')
     for analysis in analyses:
         iwjam_import.do_import(base_dir=comp_dir,
-            mod_dir=analysis.dir,
+            mod_dir=analysis.mod_dir,
             analysis=analysis)
-        print('{}: done'.format(analysis.name))
+        print('{}: done'.format(analysis.mod_name))
 
 def find_collisions(mods_resources):
     res_users = {}
