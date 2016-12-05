@@ -24,7 +24,8 @@ def do_import(base_dir, mod_dir, analysis):
         if base_group is None:
             base_group = etree.SubElement(base_root, res.restype_group_name)
         for g in group_names:
-            new_base_group = next((c for c in base_group if c.get('name') == g), None)
+            new_base_group = next((c for c in base_group
+                if c.get('name') == g), None)
             if new_base_group is None:
                 new_base_group = etree.SubElement(base_group, base_group.tag)
                 new_base_group.set('name', g)
@@ -38,8 +39,10 @@ def do_import(base_dir, mod_dir, analysis):
     # TODO: Do resource modifications
 
 def recurse_files(subpath, base_dir, mod_dir, res_names):
-    subdirs = [e for e in os.scandir(os.path.join(mod_dir, subpath)) if e.is_dir() and e.name != 'Configs']
-    files = [e for e in os.scandir(os.path.join(mod_dir, subpath)) if e.is_file()]
+    subdirs = [e for e in os.scandir(os.path.join(mod_dir, subpath))
+        if e.is_dir() and e.name != 'Configs']
+    files = [e for e in os.scandir(os.path.join(mod_dir, subpath))
+        if e.is_file()]
     
     for file in files:
         resname = file.name.split('.')[0]
@@ -74,7 +77,8 @@ def do_import_old(base_dir, mod_dir, dont_add):
         base_restype_elt = base_root.find(mod_restype_elt.tag)
         if base_restype_elt == None:
             base_restype_elt = etree.SubElement(base_root, mod_restype_elt.tag)
-        recurse_gmx(mod_restype_elt, base_restype_elt, mod_name, dont_add, added)
+        recurse_gmx(mod_restype_elt, base_restype_elt, mod_name, dont_add,
+            added)
     
     base_tree.write(base_gmx, pretty_print=True)
     
@@ -92,19 +96,24 @@ def recurse_gmx(mod_elt, base_restype_elt, mod_name, dont_add, added):
         
         match_elt = None
         if base_restype_elt != None:
-            match_elt = next((e for e in base_restype_elt.findall('.//'+resource_type) if e.text.split('\\')[-1] == resource_name), None) # .// is XPath, recursive
+            matches = (e for e in base_restype_elt.findall('.//'+resource_type)
+                if e.text.split('\\')[-1] == resource_name) 
+            match_elt = next(matches, None) # .// is XPath, recursive
         
         # New resource
         if match_elt == None:
             new_elt = etree.Element(resource_type)
             new_elt.text = leaf.text
             
-            group_names = ['stages', mod_name] + iwjam_util.element_group_names(leaf)
+            group_names = (['stages', mod_name]
+                + iwjam_util.element_group_names(leaf))
             base_group = base_restype_elt
             for g in group_names:
-                new_base_group = next((c for c in base_group if c.get('name') == g), None)
+                new_base_group = next((c for c in base_group
+                    if c.get('name') == g), None)
                 if new_base_group is None:
-                    new_base_group = etree.SubElement(base_group, base_group.tag)
+                    new_base_group = etree.SubElement(base_group,
+                        base_group.tag)
                     new_base_group.set('name', g)
                 base_group = new_base_group
             base_group.append(new_elt)

@@ -15,16 +15,22 @@ def main():
     base_dir = 'C:/Patrick/Projects/Python/iwjam/spook jam testing/base'
     
     mods_dir = 'C:/Patrick/Projects/Python/iwjam/spook jam testing/mods'
-    mod_dirs = [e.path for e in os.scandir(mods_dir) if e.is_dir() and not iwjam_util.gmx_in_dir(e.path) is None]
+    mod_dirs = [e.path for e in os.scandir(mods_dir)
+        if e.is_dir() and not iwjam_util.gmx_in_dir(e.path) is None]
     
     print('Starting analysis')
     analyses = []
     for md in mod_dirs:
-        analysis_data = iwjam_analyze.analyze(base_dir, md)
+        analysis_data = iwjam_analyze.compute_diff(base_dir, md)
         analyses.append(analysis_data)
         #print()
-        print('{:<15} {:<3} added, {:<2} modified, {:<2} regrouped, {:<2} removed'.format(
-            analysis_data.name, len(analysis_data.added), len(analysis_data.modified), len(analysis_data.regrouped), len(analysis_data.removed)))
+        print('{:<15} {:<3} added, {:<2} modified,\
+            {:<2} regrouped, {:<2} removed'.format(
+            analysis_data.name,
+            len(analysis_data.added),
+            len(analysis_data.modified),
+            len(analysis_data.regrouped),
+            len(analysis_data.removed)))
         #print('Binary: ')
         #for m in [m for m in analysis_data.modified if m.isbinary]:
         #    print(m.name)
@@ -34,12 +40,14 @@ def main():
             #print(m.difftext)
     
     print('')
-    added_collisions = find_collisions([(m.name, m.added) for m in analyses])
+    a = [(m.name, m.added) for m in analyses]
+    added_collisions = find_collisions(a)
     print('{} added collisions'.format(len(added_collisions)))
     for c in added_collisions:
         print('{}: {}'.format(c[0], ', '.join(c[1])))
-        
-    modified_collisions = find_collisions([(m.name, m.modified) for m in analyses])
+    
+    m = [(m.name, m.modified) for m in analyses]
+    modified_collisions = find_collisions(m)
     print('{} modified collisions'.format(len(modified_collisions)))
     print('Binary:')
     for c in [c for c in modified_collisions if c[1][0][1].isbinary]:
@@ -51,7 +59,9 @@ def main():
     for ai, analysis in enumerate(analyses):
         print('\n\n{} {}\n\n'.format(ai, analysis.name))
         for res in analysis.modified:
-            if res.name in ['rooms\\rGraphicsTest.room.gmx', 'rooms\\rTemplate.room.gmx', 'scripts\\scrSetGlobalOptions.gml']:
+            if res.name in ['rooms\\rGraphicsTest.room.gmx',
+                            'rooms\\rTemplate.room.gmx',
+                            'scripts\\scrSetGlobalOptions.gml']:
                 continue
             if res.isbinary:
                 continue
@@ -78,12 +88,16 @@ def main():
         print('Removing comp dir')
         shutil.rmtree(comp_dir)
     print('Copying to comp dir')
-    shutil.copytree('C:/Patrick/Projects/Python/iwjam/spook jam testing/base', comp_dir)
-    os.rename(iwjam_util.gmx_in_dir(comp_dir), os.path.join(comp_dir, 'output.project.gmx'))
+    shutil.copytree('C:/Patrick/Projects/Python/iwjam/spook jam testing/base',
+        comp_dir)
+    os.rename(iwjam_util.gmx_in_dir(comp_dir),
+        os.path.join(comp_dir, 'output.project.gmx'))
     
     print('\nStarting import\n')
     for analysis in analyses:
-        iwjam_import.do_import(base_dir=comp_dir, mod_dir=analysis.dir, analysis=analysis)
+        iwjam_import.do_import(base_dir=comp_dir,
+            mod_dir=analysis.dir,
+            analysis=analysis)
         print('{}: done'.format(analysis.name))
 
 def find_collisions(mods_resources):
@@ -103,3 +117,4 @@ signal.signal(signal.SIGINT, signal_handler)
 
 if __name__ == '__main__':
     main()
+
