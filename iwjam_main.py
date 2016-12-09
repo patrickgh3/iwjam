@@ -1,59 +1,43 @@
-# Analyzes and imports between a base GM project and a group of mod projects.
-
 import os
 import shutil
 import signal
 import sys
+import iwjam_diff
 import iwjam_analyze
 import iwjam_import
 import iwjam_util
 
 def main():
     base_dir = 'C:/Patrick/Projects/Python/iwjam/spook jam testing/base'
-    
     mods_dir = 'C:/Patrick/Projects/Python/iwjam/spook jam testing/mods'
     mod_dirs = [e.path for e in os.scandir(mods_dir)
         if e.is_dir() and not iwjam_util.gmx_in_dir(e.path) is None]
     
-    print('Starting analysis')
-    analyses = []
+    pdiffs = []
     for md in mod_dirs:
-        analysis_data = iwjam_analyze.compute_diff(base_dir, md)
-        analyses.append(analysis_data)
-        #print()
-        print('{:<15} {:<3} added, {:<2} modified,\
-            {:<2} regrouped, {:<2} removed'.format(
-            analysis_data.mod_name,
-            len(analysis_data.added),
-            len(analysis_data.modified),
-            len(analysis_data.regrouped),
-            len(analysis_data.removed)))
-        #print('Binary: ')
-        #for m in [m for m in analysis_data.modified if m.isbinary]:
-        #    print(m.name)
-        #print('Not binary:')
-        #for m in [m for m in analysis_data.modified if not m.isbinary]:
-        #    print(m.name)
-            #print(m.difftext)
-    
-    print('')
-    a = [(m.mod_name, m.added) for m in analyses]
-    added_collisions = find_collisions(a)
-    print('{} added collisions'.format(len(added_collisions)))
-    for c in added_collisions:
-        print('{}: {}'.format(c[0], ', '.join(c[1])))
-    
-    m = [(m.mod_name, m.modified) for m in analyses]
-    modified_collisions = find_collisions(m)
-    print('{} modified collisions'.format(len(modified_collisions)))
-    print('Binary:')
-    for c in [c for c in modified_collisions if c[1][0][1].isbinary]:
-        print('{}: {}'.format(c[0], ', '.join([a[0] for a in c[1]])))
-    print('Not binary:')
-    for c in [c for c in modified_collisions if not c[1][0][1].isbinary]:
-        print('{}: {}'.format(c[0], ', '.join([a[0] for a in c[1]])))
+        pdiff = iwjam_diff.compute_diff(base_dir, md)
+        pdiffs.append(pdiff)
+        print('{:<15} {:<3} added, {:<2} modified, '
+            '{:<2} regrouped, {:<2} removed'.format(
+            pdiff.mod_name,
+            len(pdiff.added),
+            len(pdiff.modified),
+            len(pdiff.regrouped),
+            len(pdiff.removed)))
 
-    for ai, analysis in enumerate(analyses):
+    collisions = iwjam_analyze.collisions_in_diffs(pdiffs)
+    print('{} added collisions'.format(len(collisions.added)))
+    for c in collisions.added:
+        modnames = (d.mod_name for (d,res) in c.present_in if res.isbinary)
+        print('{}: {}'.format(c.resourcename, ', '.join(modnames)))
+
+    print('{} modified collisions'.format(len(collisions.modified)))
+    for c in collisions.modified:
+        modnames = (d.mod_name for (d,res) in c.present_in if res.isbinary)
+        print('{}: {}'.format(c.resourcename, ', '.join(modnames)))
+
+    for ai, analysis in enumerate(pdiffs):
+        continue
         print('\n\n{} {}\n\n'.format(ai, analysis.mod_name))
         for res in analysis.modified:
             if res.name in ['rooms\\rGraphicsTest.room.gmx',
@@ -76,7 +60,7 @@ def main():
                         line = '>'+line[1:]
                 print(line)
         
-    if len(added_collisions) != 0:
+    if len(collisions.added) != 0:
         print('Can\'t do imports when there are add collisions.')
         exit()
     
@@ -91,21 +75,11 @@ def main():
         os.path.join(comp_dir, 'output.project.gmx'))
     
     print('\nStarting import\n')
-    for analysis in analyses:
+    for pdiff in pdiffs:
         iwjam_import.do_import(base_dir=comp_dir,
-            mod_dir=analysis.mod_dir,
-            analysis=analysis)
+            mod_dir=pdiff.mod_dir,
+            analysis=pdiff)
         print('{}: done'.format(analysis.mod_name))
-
-def find_collisions(mods_resources):
-    res_users = {}
-    for modname, reslist in mods_resources:
-        for r in reslist:
-            if not r.name in res_users:
-                res_users[r.name] = []
-            res_users[r.name].append((modname, r))
-    collisions = [a for a in res_users.items() if len(a[1]) > 1]
-    return sorted(collisions, key=lambda x: x[0])
 
 def signal_handler(signal, frame):
     print('Stopped.')
