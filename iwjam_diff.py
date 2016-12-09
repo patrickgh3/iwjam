@@ -148,7 +148,7 @@ def _recurse_files(relative_path, base_dir, mod_dir, pdiff):
     # For each base file, find matching mod file and diff them
     for basefile in basefiles:
         relative_file_path = os.path.relpath(basefile.path, base_dir)
-        mod_file_path = os.path.join(mod_dir, rp)
+        mod_file_path = os.path.join(mod_dir, relative_file_path)
         # Skip this file if no matching file in the mod
         if not os.path.exists(mod_file_path):
             continue
@@ -177,7 +177,7 @@ def _recurse_files(relative_path, base_dir, mod_dir, pdiff):
             pdiff.modified.append(modres)
     
     # Recurse into subdirectories
-    for subdir in dirs:
+    for subdir in basedirs:
         relpath = os.path.relpath(subdir.path, base_dir)
         _recurse_files(relpath, base_dir, mod_dir, pdiff)
 

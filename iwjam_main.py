@@ -76,10 +76,8 @@ def main():
     
     print('\nStarting import\n')
     for pdiff in pdiffs:
-        iwjam_import.do_import(base_dir=comp_dir,
-            mod_dir=pdiff.mod_dir,
-            analysis=pdiff)
-        print('{}: done'.format(analysis.mod_name))
+        iwjam_import.do_import(comp_dir, pdiff.mod_dir, pdiff)
+        print('{}: done'.format(pdiff.mod_name))
 
 def signal_handler(signal, frame):
     print('Stopped.')
