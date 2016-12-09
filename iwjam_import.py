@@ -16,7 +16,7 @@ def do_import(base_dir, mod_dir, analysis):
     
     # Add new resources
     for res in analysis.added:
-        new_elt = etree.Element(res.type)
+        new_elt = etree.Element(res.restype)
         new_elt.text = res.elt_text
         
         group_names = ['stages', analysis.mod_name] + res.group_names
