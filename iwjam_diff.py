@@ -38,15 +38,17 @@ class RegroupedResource(AddedResource):
     pass
 
 # compute_diff(base_dir, mod_dir)
-# Returns a ProjectDiff namedtuple (defined above) which represents the
+# Returns a ProjectDiff (defined above) which represents the
 # diff between two projects.
 def compute_diff(base_dir, mod_dir):
+    # Create ProjectDiff
     pdiff = ProjectDiff()
     pdiff.base_dir = base_dir
     pdiff.base_name = os.path.split(base_dir)[1]
     pdiff.mod_dir = mod_dir
     pdiff.mod_name = os.path.split(mod_dir)[1]
 
+    # Set up XML stuff
     base_gmx = iwjam_util.gmx_in_dir(base_dir)
     base_tree = etree.parse(base_gmx)
     base_root = base_tree.getroot()
@@ -55,8 +57,8 @@ def compute_diff(base_dir, mod_dir):
     mod_tree = etree.parse(mod_gmx)
     mod_root = mod_tree.getroot()
 
-    # Recurse into restype elements in the mod, paired with
-    # restype elements in the base if they exist
+    # Recurse into resource type elements in the mod,
+    # paired with restype elements in the base if they exist
     for mod_restype_elt in iwjam_util.restype_elements_in_tree(mod_root):
         base_restype_elt = base_root.find(mod_restype_elt.tag)
         _recurse_gmx(mod_restype_elt, base_restype_elt, pdiff)
@@ -67,6 +69,7 @@ def compute_diff(base_dir, mod_dir):
     for base_restype_elt in iwjam_util.restype_elements_in_tree(base_root):
         mod_restype_elt = mod_root.find(base_restype_elt.tag)
         _recurse_gmx(base_restype_elt, mod_restype_elt, data2)
+
     pdiff.removed.extend(data2.added)
     for r in pdiff.removed:
         r.__class__ = RemovedResource
@@ -78,7 +81,7 @@ def compute_diff(base_dir, mod_dir):
 
 # Fills in added[] and regrouped[] fields of a project diff
 # starting at a specific XML element in the mod, and given
-# the base resource type element of the base.
+# the resource type element of the base.
 def _recurse_gmx(mod_elt, base_restype_elt, pdiff):
     # XML structure:
     # <assets>

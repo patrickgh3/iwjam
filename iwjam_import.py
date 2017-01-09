@@ -8,10 +8,12 @@ import iwjam_util
 # and a list of folder names to prefix
 # ('%modname%' will be replaced with the mod's name)
 def do_import(base_dir, mod_dir, pdiff, folder_prefixes=['%modname%']):
+    # Replace %modname%
     for i, p in enumerate(folder_prefixes):
         if p == '%modname%':
             folder_prefixes[i] = pdiff.mod_name
 
+    # Set up XML
     base_gmx = iwjam_util.gmx_in_dir(base_dir)
     base_tree = etree.parse(base_gmx)
     base_root = base_tree.getroot()
@@ -20,28 +22,37 @@ def do_import(base_dir, mod_dir, pdiff, folder_prefixes=['%modname%']):
     mod_tree = etree.parse(mod_gmx)
     mod_root = mod_tree.getroot()
 
+    # For each added resource
     for addedres in pdiff.added:
-        # Create a copy of the added resource
+        # Create a new resource element
         new_elt = etree.Element(addedres.restype)
         new_elt.text = addedres.elt_text
 
-        # Create corresponding base groups if they don't exist
+        # Create list of names of groups to traverse/create 
         group_names = folder_prefixes + addedres.group_names
-        base_group = base_root.find(addedres.restype_group_name)
-        if base_group is None:
-            base_group = etree.SubElement(base_root, addedres.restype_group_name)
+        baseElt = base_root.find(addedres.restype_group_name)
+        # Create resource type element if it doesn't exist
+        if baseElt is None:
+            baseElt = etree.SubElement(base_root, addedres.restype_group_name)
+
+        # Traverse groups, creating nonexistent ones along the way
         for g in group_names:
-            new_base_group = next(
-                    (c for c in base_group if c.get('name') == g), None)
-            if new_base_group is None:
-                new_base_group = etree.SubElement(base_group, base_group.tag)
-                new_base_group.set('name', g)
-            base_group = new_base_group
+            # Try to find group element with the current name
+            nextBaseElt = next(
+                    (c for c in baseElt if c.get('name') == g), None)
+            # Create group element if it doesn't exist
+            if nextBaseElt is None:
+                nextBaseElt = etree.SubElement(baseElt, baseElt.tag)
+                nextBaseElt.set('name', g)
+            baseElt = nextBaseElt
         
-        base_group.append(new_elt)
+        # Add the new resource element
+        baseElt.append(new_elt)
     
+    # Write project file
     base_tree.write(base_gmx, pretty_print=True)
 
+    # Now, copy the files
     _recurse_files('', base_dir, mod_dir, [r.name for r in pdiff.added])
     
     # TODO: Modified resources
