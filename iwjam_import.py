@@ -1,5 +1,6 @@
 from lxml import etree
 import os
+import sys
 import shutil
 import iwjam_util
 
@@ -8,6 +9,15 @@ import iwjam_util
 # and a list of folder names to prefix
 # ('%modname%' will be replaced with the mod's name)
 def do_import(base_dir, mod_dir, pdiff, folder_prefixes=['%modname%']):
+    # Clone base project into out directory
+    #if os.path.isdir(out_dir):
+    #    print('Out dir already exists, aborting')
+    #    sys.exit()
+    #shutil.copytree(base_dir, out_dir)
+    #os.rename(iwjam_util.gmx_in_dir(out_dir),
+    #        os.path.join(out_dir, 'output.project.gmx'))
+    #base_dir = out_dir
+
     # Replace %modname%
     for i, p in enumerate(folder_prefixes):
         if p == '%modname%':
