@@ -16,6 +16,8 @@ def main():
 
 
 
+    # Diff the stage and the compilation.
+
     diff = iwjam_diff.compute_diff(
         base_dir=args.compilation_dir,
         mod_dir=args.stage_dir
@@ -25,6 +27,7 @@ def main():
     for r in diff.added:
         print(r.name)
     print('')
+
     print('{} different resources'.format(len(diff.modified)))
     for r in diff.modified:
         print(r.name)
@@ -32,9 +35,13 @@ def main():
 
 
 
-    if input('Proceed with import? (y/n) ') != 'y':
+    print('Proceed with import into {}? Be sure you\'ve backed up that '
+        'project.\n(y/n) '.format(args.compilation_dir), end='')
+    if input() != 'y':
         print('Aborted')
         return
+
+    # Import the stage into the compilation.
 
     iwjam_import.do_import(
         base_dir=args.compilation_dir,
