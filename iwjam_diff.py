@@ -163,10 +163,11 @@ def _recurse_files(relative_path, base_dir, mod_dir, pdiff):
             istext = extension in ['gml', 'gmx']
             if istext:
                 isbinary = False
-                proc = subprocess.run(
-                    ['diff', '-u', basefile.path, mod_file_path],
-                    stdout=subprocess.PIPE)
-                difftext = proc.stdout.decode('utf-8')
+                #proc = subprocess.run(
+                #    ['diff', '-u', basefile.path, mod_file_path],
+                #    stdout=subprocess.PIPE)
+                #difftext = proc.stdout.decode('utf-8')
+                difftext = 'not binary (diff command disabled)'
             else:
                 isbinary = True
                 difftext = 'binary files'
